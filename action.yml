@@ -1,0 +1,108 @@
+name: Setup Poetry Environment
+description: Setup python, install poetry via pipx (cached) and cache poetry venv. Use actions/checkout before to track dependency changes via cache.
+
+inputs:
+  python-version:
+    description: "actions/setup-python: Version range or exact version of Python or PyPy to use, using SemVer's version range syntax. Reads from .python-version if unset."
+  poetry-version:
+    description: The version (1.0) or specifier (==1.0) of poetry to install via pipx. Use 'latest' to force latest version on every run. By default no version is specified.
+    required: false
+  poetry-install-options:
+    description: Options passed to poetry install, like '--no-root'.
+    required: false
+  working-directory:
+    description: Working directory for "poetry install".
+    required: false
+    default: '.'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      id: setup-python
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Ensure pipx install
+      shell: bash
+      run: |
+        if ! command -v pipx; then
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+        fi
+    - name: Setup pipx environment variables
+      id: pipx-env-setup
+      # pipx default home and bin dir are not writable by the cache action
+      # so override them here and add the bin dir to PATH for later steps.
+      # This also ensures the pipx cache only contains poetry
+      # Credits: https://github.com/pypa/pipx/discussions/1051#discussioncomment-9116563
+      shell: bash
+      run: |
+        PIPX_CACHE="${{ github.workspace }}/pipx_cache"
+        echo "pipx-cache-path=${PIPX_CACHE}" >> $GITHUB_OUTPUT
+        echo "pipx-version=$(pipx --version)" >> $GITHUB_OUTPUT
+        echo "PIPX_HOME=${PIPX_CACHE}/home" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=${PIPX_CACHE}/bin" >> $GITHUB_ENV
+        echo "PIPX_MAN_DIR=${PIPX_CACHE}/man" >> $GITHUB_ENV
+        echo "${PIPX_CACHE}/bin" >> $GITHUB_PATH
+
+    - name: Poetry version
+      # empty: no version spec
+      # latest: get latest version from pip
+      # 1.0 (version only): ==1.0 version spec
+      # ==1.0 (full version spec): keep
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.poetry-version }}" ]]; then
+          :
+        elif [[ "${{ inputs.poetry-version }}" == "latest" ]]; then
+          echo "POETRY_VERSION=\=\=$(pip index versions poetry --disable-pip-version-check | grep -P -o "\(\K[^()]+(?=\))" | head -1)" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC='==$POETRY_VERSION'" >> $GITHUB_ENV
+        elif [[ "${{ inputs.poetry-version }}" =~ ^[0-9] ]]; then
+          echo "POETRY_VERSION=${{ inputs.poetry-version }}" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC='==${{ inputs.poetry-version }}'" >> $GITHUB_ENV
+        else
+          echo "POETRY_VERSION=${{ inputs.poetry-version }}" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC='${{ inputs.poetry-version }}'" >> $GITHUB_ENV
+        fi
+
+    - name: Pipx cache
+      id: pipx-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pipx-env-setup.outputs.pipx-cache-path }}
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-${{ env.POETRY_VERSION }}
+        restore-keys: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-
+
+    - name: Install poetry
+      if: steps.pipx-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: pipx install "poetry $POETRY_VERSION_SPEC" --python "${{ steps.setup-python.outputs.python-path }}"
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Poetry Config
+      id: poetry-config
+      # Get virtualenvs-path for poetry cache
+      run: echo "virtualenvs-path=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Poetry cache
+      id: poetry-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/.venv
+          ${{ steps.poetry-config.outputs.virtualenvs-path }}
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-
+
+    - name: "Poetry install"
+      if: steps.poetry-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        POETRY_VIRTUALENVS_CREATE: true
+        POETRY_VIRTUALENVS_IN_PROJECT: true
+      run: poetry install --no-interaction ${{ inputs.poetry-install-options }}
+      working-directory: ${{ inputs.working-directory }}
