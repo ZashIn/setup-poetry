@@ -3,7 +3,7 @@ description: Setup python, install poetry via pipx (cached) and cache poetry ven
 
 inputs:
   python-version:
-    description: "actions/setup-python: Version range or exact version of Python or PyPy to use, using SemVer's version range syntax. Reads from .python-version if unset."
+    description: "From actions/setup-python: Version range or exact version of Python or PyPy to use, using SemVer's version range syntax. Reads from .python-version if unset."
   poetry-version:
     description: The version (1.0) or specifier (==1.0) of poetry to install via pipx. Use 'latest' to force latest version on every run. By default no version is specified.
     required: false
