@@ -1,0 +1,29 @@
+name: Test composite action
+
+on: [push, pull_request]
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    env:
+      cwd: tests/test-package
+    defaults:
+      run:
+        working-directory: ${{ env.cwd }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run this composite action
+        uses: ./
+        with:
+          python-version: 3.12
+          poetry-version: 2.1.4
+          working-directory: ${{ env.cwd }}
+      - name: Test python version
+        run: python --version | grep 3.12 || exit 1
+      - name: Test poetry version
+        run: poetry --version --no-ansi | grep "version 2.1.5" || exit 1
+      - name: Test depency installation
+        run: |
+          poetry show --no-ansi | grep ruff || exit 1
+          poetry run pip list | grep ruff || exit 1
+
