@@ -58,13 +58,13 @@ runs:
           :
         elif [[ "${{ inputs.poetry-version }}" == "latest" ]]; then
           echo "POETRY_VERSION=\=\=$(pip index versions poetry --disable-pip-version-check | grep -P -o "\(\K[^()]+(?=\))" | head -1)" >> $GITHUB_ENV
-          echo "POETRY_VERSION_SPEC='==$POETRY_VERSION'" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC===$POETRY_VERSION" >> $GITHUB_ENV
         elif [[ "${{ inputs.poetry-version }}" =~ ^[0-9] ]]; then
           echo "POETRY_VERSION=${{ inputs.poetry-version }}" >> $GITHUB_ENV
-          echo "POETRY_VERSION_SPEC='==${{ inputs.poetry-version }}'" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC===${{ inputs.poetry-version }}" >> $GITHUB_ENV
         else
           echo "POETRY_VERSION=${{ inputs.poetry-version }}" >> $GITHUB_ENV
-          echo "POETRY_VERSION_SPEC='${{ inputs.poetry-version }}'" >> $GITHUB_ENV
+          echo "POETRY_VERSION_SPEC=${{ inputs.poetry-version }}" >> $GITHUB_ENV
         fi
 
         echo "CACHE_PREFIX=setup-poetry-${{ runner.os }}-${{ runner.arch }}-python-${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
@@ -81,7 +81,7 @@ runs:
     - name: Install poetry
       if: steps.pipx-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: pipx install "poetry $POETRY_VERSION_SPEC" --python "${{ steps.setup-python.outputs.python-path }}"
+      run: pipx install "poetry$POETRY_VERSION_SPEC" --python "${{ steps.setup-python.outputs.python-path }}"
       working-directory: ${{ inputs.working-directory }}
 
     - name: Poetry Config
