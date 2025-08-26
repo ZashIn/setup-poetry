@@ -10,12 +10,14 @@ See [action.yml](action.yml)
 ```yaml
 -uses: zashin/setup-poetry@1
   with:
-    # From actions/setup-python: Version range or exact version of Python or PyPy to use, using SemVer's version range syntax. Reads from .python-version if unset.
+    # From actions/setup-python: Version range or exact version of Python or PyPy to use,
+    # using SemVer's version range syntax. Reads from .python-version if unset.
     python-version: ''
-    # The version (1.0) or specifier (==1.0) of poetry to install via pipx. Use 'latest' to force latest version on every run. By default no version is specified.
+    # The version (1.0) or specifier (==1.0) of poetry to install via pipx. Use 'latest'
+    # to force latest version on every run. By default no version is specified.
     poetry-version: ''
-    # Options passed to poetry install, like '--no-root'.
+    # Options passed to poetry install, like '--no-root'
     poetry-install-options: ''
-    # Working directory for "poetry install".
+    # Working directory for "poetry install"
     working-directory: '.'
 ```
