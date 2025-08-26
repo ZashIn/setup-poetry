@@ -83,24 +83,13 @@ runs:
       shell: bash
       run: pipx install "poetry$POETRY_VERSION_SPEC" --python "${{ steps.setup-python.outputs.python-path }}"
       working-directory: ${{ inputs.working-directory }}
-
-    - name: Poetry Config
-      id: poetry-config
-      # Get virtualenvs-path for poetry cache
-      run: echo "virtualenvs-path=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-
     - name: Poetry cache
       id: poetry-cache
       uses: actions/cache@v4
       with:
-        path: |
-          **/.venv
-          ${{ steps.poetry-config.outputs.virtualenvs-path }}
+        path: "**/.venv"
         key: ${{ env.CACHE_PREFIX }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
         restore-keys: ${{ env.CACHE_PREFIX }}-poetry-
-
     - name: "Poetry install"
       if: steps.poetry-cache.outputs.cache-hit != 'true'
       shell: bash
