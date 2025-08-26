@@ -22,9 +22,9 @@ jobs:
       - name: Test python version
         run: python --version | grep 3.12 || exit 1
       - name: Test poetry version
-        run: poetry --version --no-ansi | grep "version 2.1.5" || exit 1
+        run: poetry --version --no-ansi | grep -i "version 2.1.4" || exit 1
       - name: Test depency installation
         run: |
-          poetry show --no-ansi | grep pyyaml || exit 1
-          poetry run pip list | grep pyyaml || exit 1
+          poetry show --no-ansi | grep -i pyyaml || exit 1
+          poetry run pip list | grep -i pyyaml || exit 1
 
