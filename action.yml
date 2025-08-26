@@ -46,6 +46,8 @@ runs:
         echo "PIPX_MAN_DIR=${PIPX_CACHE}/man" >> $GITHUB_ENV
         echo "${PIPX_CACHE}/bin" >> $GITHUB_PATH
 
+        echo "CACHE_PREFIX=poetry-setup-${{ runner.os }}-${{ runner.arch }}-python-${{ steps.setup-python.outputs.python-version }} >> $GITHUB_ENV
+
     - name: Poetry version
       # empty: no version spec
       # latest: get latest version from pip
@@ -71,8 +73,8 @@ runs:
       uses: actions/cache@v4
       with:
         path: ${{ steps.pipx-env-setup.outputs.pipx-cache-path }}
-        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-${{ env.POETRY_VERSION }}
-        restore-keys: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-
+        key: ${{ env.CACHE_PREFIX }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-${{ env.POETRY_VERSION }}
+        restore-keys: ${{ env.CACHE_PREFIX }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-
 
     - name: Install poetry
       if: steps.pipx-cache.outputs.cache-hit != 'true'
@@ -94,9 +96,8 @@ runs:
         path: |
           **/.venv
           ${{ steps.poetry-config.outputs.virtualenvs-path }}
-        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
-        restore-keys: |
-          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-
+        key: ${{ env.CACHE_PREFIX }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
+        restore-keys: ${{ env.CACHE_PREFIX }}-poetry-
 
     - name: "Poetry install"
       if: steps.poetry-cache.outputs.cache-hit != 'true'
