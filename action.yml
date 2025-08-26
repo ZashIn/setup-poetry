@@ -67,13 +67,15 @@ runs:
           echo "POETRY_VERSION_SPEC='${{ inputs.poetry-version }}'" >> $GITHUB_ENV
         fi
 
+        echo "CACHE_PREFIX=setup-poetry-${{ runner.os }}-${{ runner.arch }}-python-${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
+
     - name: Pipx cache
       id: pipx-cache
       uses: actions/cache@v4
       with:
         path: ${{ steps.pipx-env-setup.outputs.pipx-cache-path }}
-        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-${{ env.POETRY_VERSION }}
-        restore-keys: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-
+        key: ${{ env.CACHE_PREFIX }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-${{ env.POETRY_VERSION }}
+        restore-keys: ${{ env.CACHE_PREFIX }}-pipx-${{ steps.pipx-env-setup.outputs.pipx-version }}-poetry-
 
     # Poetry
     - name: Install poetry
@@ -96,14 +98,14 @@ runs:
         path: |
           **/.venv
           ${{ steps.poetry-config.outputs.virtualenvs-path }}
-        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
-        restore-keys: |
-          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-
+        key: ${{ env.CACHE_PREFIX }}-poetry-${{ hashFiles('**/poetry.lock') }}${{ inputs.poetry-install-options }}
+        restore-keys: ${{ env.CACHE_PREFIX }}-poetry-
 
     - name: "Poetry install"
       if: steps.poetry-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
+        # Use env vars instead of slow poetry config
         POETRY_VIRTUALENVS_CREATE: true
         POETRY_VIRTUALENVS_IN_PROJECT: true
       run: poetry install --no-interaction ${{ inputs.poetry-install-options }}
