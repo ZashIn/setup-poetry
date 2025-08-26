@@ -1,5 +1,5 @@
 name: Setup Poetry Environment
-description: Setup python, install poetry via pipx (cached) and cache poetry venv. Use actions/checkout before to track dependency changes via cache.
+description: Setup python, install poetry via pipx (cached) and cache poetry venv. Use actions/checkout before to track dependency changes in cache.
 
 inputs:
   python-version:
