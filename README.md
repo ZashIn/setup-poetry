@@ -1,5 +1,6 @@
 # setup-poetry
 [![Test action](https://github.com/ZashIn/setup-poetry/actions/workflows/test-action.yml/badge.svg)](https://github.com/ZashIn/setup-poetry/actions/workflows/test-action.yml)
+[![Time action](https://github.com/ZashIn/setup-poetry/actions/workflows/time-action.yml/badge.svg)](https://github.com/ZashIn/setup-poetry/actions/workflows/time-action.yml)
 
 GitHub action to:
 - setup python: `actions/setup-python`
