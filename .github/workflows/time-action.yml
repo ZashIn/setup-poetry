@@ -59,6 +59,7 @@ jobs:
           working-directory: ${{ env.cwd }}
 
   compare-to-no-caching:
+    needs: time-cached  # non-parallel for better time comparison
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
