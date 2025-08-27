@@ -15,6 +15,12 @@ inputs:
     required: false
     default: "."
 
+outputs:
+  cache-hit:
+    description: "A boolean value to indicate a cache entry was found"
+    value: ${{ steps.pipx-cache.outputs.cache-hit == 'true'
+            && steps.poetry-cache.outputs.cache-hit == 'true' }}
+
 runs:
   using: composite
   steps:
