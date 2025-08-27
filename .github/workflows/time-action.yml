@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Run this composite action without cache
+      - name: Run this composite action with no existing cache
         id: action
         uses: ./
         with:
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Run this composite action with cache
+      - name: Run this composite action with existing cache
         id: action
         uses: ./
         with:
@@ -58,8 +58,23 @@ jobs:
           poetry-install-options: --no-root
           working-directory: ${{ env.cwd }}
 
-  compare-to-no-caching:
+  time-disabled-caching:
     needs: time-cached  # non-parallel for better time comparison
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run this composite action with disabled caching
+        id: action
+        uses: ./
+        with:
+          python-version: 3.12
+          poetry-version: 2.1.4
+          poetry-install-options: --no-root
+          working-directory: ${{ env.cwd }}
+          use-cache: false
+
+  compare-to-non-composite:
+    needs: time-disabled-caching  # non-parallel for better time comparison
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

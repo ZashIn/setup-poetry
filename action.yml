@@ -14,6 +14,9 @@ inputs:
     description: Working directory for "poetry install".
     required: false
     default: "."
+  use-cache:
+    description: If pipx and poetry installation should be cached
+    default: 'true'
 
 outputs:
   cache-hit:
@@ -46,15 +49,17 @@ runs:
       # This also ensures the pipx cache only contains poetry
       # Credits: https://github.com/pypa/pipx/discussions/1051#discussioncomment-9116563
       run: |-
-        PIPX_CACHE="${{ github.workspace }}/pipx_cache"
-        echo "PIPX_HOME=${PIPX_CACHE}/home" >> $GITHUB_ENV
-        echo "PIPX_BIN_DIR=${PIPX_CACHE}/bin" >> $GITHUB_ENV
-        echo "PIPX_MAN_DIR=${PIPX_CACHE}/man" >> $GITHUB_ENV
-        echo "${PIPX_CACHE}/bin" >> $GITHUB_PATH
-        echo "pipx-cache-path=${PIPX_CACHE}" >> $GITHUB_OUTPUT
-        echo "pipx-version=$(pipx --version)" >> $GITHUB_OUTPUT
+        if [[ ${{ inputs.use-cache }} == true ]]; then
+          PIPX_CACHE="${{ github.workspace }}/pipx_cache"
+          echo "PIPX_HOME=${PIPX_CACHE}/home" >> $GITHUB_ENV
+          echo "PIPX_BIN_DIR=${PIPX_CACHE}/bin" >> $GITHUB_ENV
+          echo "PIPX_MAN_DIR=${PIPX_CACHE}/man" >> $GITHUB_ENV
+          echo "${PIPX_CACHE}/bin" >> $GITHUB_PATH
+          echo "pipx-cache-path=${PIPX_CACHE}" >> $GITHUB_OUTPUT
+          echo "pipx-version=$(pipx --version)" >> $GITHUB_OUTPUT
 
-        echo "cache-prefix=setup-poetry-${{ runner.os }}-${{ runner.arch }}-python-${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_OUTPUT
+          echo "cache-prefix=setup-poetry-${{ runner.os }}-${{ runner.arch }}-python-${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_OUTPUT
+        fi
 
         if [[ -z "${{ inputs.poetry-version }}" ]]; then
           :
@@ -75,6 +80,7 @@ runs:
       #  ==1.0 (full version spec): keep
 
     - name: Pipx cache
+      if: inputs.use-cache == 'true'
       id: pipx-cache
       uses: actions/cache@v4
       with:
@@ -89,6 +95,7 @@ runs:
       run: pipx install "poetry${{ steps.vars.outputs.poetry-version-spec }}" --python "${{ steps.setup-python.outputs.python-path }}"
       working-directory: ${{ inputs.working-directory }}
     - name: Poetry cache
+      if: inputs.use-cache == 'true'
       id: poetry-cache
       uses: actions/cache@v4
       with:
