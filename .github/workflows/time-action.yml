@@ -29,6 +29,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+
   time-uncached:
     needs: clear-cache
     runs-on: ubuntu-latest
@@ -42,6 +43,7 @@ jobs:
           poetry-version: 2.1.4
           poetry-install-options: --no-root
           working-directory: ${{ env.cwd }}
+
   time-cached:
     needs: time-uncached
     runs-on: ubuntu-latest
@@ -55,3 +57,24 @@ jobs:
           poetry-version: 2.1.4
           poetry-install-options: --no-root
           working-directory: ${{ env.cwd }}
+
+  compare-to-no-caching:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.12
+      - name: Install poetry
+        shell: bash
+        run: pipx install "poetry==2.1.4" --python "${{ steps.setup-python.outputs.python-path }}"
+        working-directory: ${{ env.cwd }}
+      - name: Poetry install
+        shell: bash
+        env:
+          # Use env vars instead of slow poetry config
+          POETRY_VIRTUALENVS_CREATE: true
+          POETRY_VIRTUALENVS_IN_PROJECT: true
+        run: poetry install --no-interaction --no-root
+        working-directory: ${{ env.cwd }}
