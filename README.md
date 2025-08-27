@@ -23,4 +23,6 @@ See [action.yml](action.yml)
     poetry-install-options: ''
     # Working directory for "poetry install".
     working-directory: '.'
+    # If pipx and poetry installation should be cached
+    use-cache: 'true'
 ```
