@@ -1,0 +1,57 @@
+name: Time action
+
+on: workflow_dispatch
+
+env:
+  cwd: tests/test-package
+
+jobs:
+  clear-cache:
+    # based on: https://github.com/actions/cache/blob/main/tips-and-workarounds.md#force-deletion-of-caches-overriding-default-cache-eviction-policy
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Cleanup
+        run: |
+          echo "Fetching list of cache key"
+          cacheKeysForPR=$(gh cache list --limit 100 --json id --jq '.[].id')
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeysForPR
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+  time-uncached:
+    needs: clear-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run this composite action without cache
+        id: action
+        uses: ./
+        with:
+          python-version: 3.12
+          poetry-version: 2.1.4
+          poetry-install-options: --no-root
+          working-directory: ${{ env.cwd }}
+  time-cached:
+    needs: time-uncached
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run this composite action with cache
+        id: action
+        uses: ./
+        with:
+          python-version: 3.12
+          poetry-version: 2.1.4
+          poetry-install-options: --no-root
+          working-directory: ${{ env.cwd }}
