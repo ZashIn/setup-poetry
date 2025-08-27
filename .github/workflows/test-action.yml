@@ -1,4 +1,4 @@
-name: Test composite action
+name: Test action
 
 on:
   push:

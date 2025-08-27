@@ -1,5 +1,7 @@
 # setup-poetry
-Github action to:
+[![Test action](https://github.com/ZashIn/setup-poetry/actions/workflows/test-action.yml/badge.svg)](https://github.com/ZashIn/setup-poetry/actions/workflows/test-action.yml)
+
+GitHub action to:
 - setup python: `actions/setup-python`
 - install poetry: via `pipx` (cached)
 - install project dependencies: via `poetry install` (cached venv)
